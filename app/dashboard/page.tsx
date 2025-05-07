@@ -4,6 +4,8 @@ import LatestInvoices from '@/app/ui/dashboard/latest-invoices';
 import { lusitana } from '@/app/ui/fonts';
 import { fetchCardDataPrisma, fetchLatestInvoicesPrisma, fetchRevenuePrisma } from '../lib/prisma';
 
+export const dynamic = "force-dynamic";
+
 export default async function Page() {
     const revenue = await fetchRevenuePrisma();
     const latestInvoices = await fetchLatestInvoicesPrisma(); 
