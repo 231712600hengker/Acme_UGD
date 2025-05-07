@@ -14,15 +14,12 @@ export async function fetchRevenuePrisma() {
   }
 }
 
-export async function fetchLatestInvoicesPrisma(
-    take: number = 10,
-    orderBy: "asc" | "desc" = "desc"
-  ) {
+export async function fetchLatestInvoicesPrisma() {
     try {
       const data = await prisma.invoices.findMany({
-        take,
+        take: 10,
         orderBy: {
-          amount: orderBy,
+          date: "desc",
         },
         include: {
           customer: {
