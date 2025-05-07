@@ -52,31 +52,26 @@ export async function fetchLatestInvoicesPrisma(
 
 export async function fetchCardDataPrisma() {
   try {
-    const invoiceCountPromise = prisma.invoices.count();
-    const customerCountPromise = prisma.customers.count();
-    const invoiceStatusPromise = prisma.invoices.groupBy({
-      by: ["status"],
-      _sum: {
-        amount: true,
-      },
-    });
-
-    const data = await Promise.all([
-      invoiceCountPromise,
-      customerCountPromise,
-      invoiceStatusPromise,
+    const [invoiceCount, customerCount, invoiceStatus] = await Promise.all([
+      prisma.invoices.count(),
+      prisma.customers.count(),
+      prisma.invoices.groupBy({
+        by: ["status"],
+        _sum: {
+          amount: true,
+        },
+      }),
     ]);
 
-    const paid =
-      data[2].find((status) => status.status === "paid")?._sum.amount || 0;
-    const pending =
-      data[2].find((status) => status.status === "pending")?._sum.amount || 0;
+    const statusSummary = invoiceStatus.reduce((acc, curr) => {
+      acc[curr.status] = formatCurrency(curr._sum.amount || 0);
+      return acc;
+    }, {} as Record<string, string>);
 
     return {
-      numberOfCustomers: data[1],
-      numberOfInvoices: data[0],
-      totalPaidInvoices: formatCurrency(paid),
-      totalPendingInvoices: formatCurrency(pending),
+      numberOfCustomers: customerCount,
+      numberOfInvoices: invoiceCount,
+      statusSummary,
     };
   } catch (error) {
     console.error("Database Error:", error);
