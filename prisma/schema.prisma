@@ -8,31 +8,57 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model customers {
-  id        String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name      String    @db.VarChar(255)
-  email     String    @db.VarChar(255)
-  image_url String    @db.VarChar(255)
-  invoices  invoices[]
+enum InvoiceStatus {
+  PAID
+  UNPAID
+  PENDING
 }
 
-model invoices {
-  id          String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  customer_id String     @db.Uuid
+model Customer {
+  id        String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name      String     @db.VarChar(255)
+  email     String     @unique @db.VarChar(255)
+  imageUrl  String     @db.VarChar(255)
+  invoices  Invoice[]
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("customers")
+}
+
+model Invoice {
+  id          String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customerId  String        @db.Uuid
   amount      Int
-  status      String     @db.VarChar(255)
-  date        DateTime   @db.Date
-  customer    customers  @relation(fields: [customer_id], references: [id])
+  status      InvoiceStatus
+  date        DateTime      @db.Date
+  customer    Customer      @relation(fields: [customerId], references: [id])
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("invoices")
 }
 
-model revenue {
-  month   String @unique @db.VarChar(4)
-  revenue Int
+model Revenue {
+  month    String   @unique @db.VarChar(4)
+  revenue  Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("revenue")
 }
 
-model users {
-  id       String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name     String @db.VarChar(255)
-  email    String @unique
-  password String
+model User {
+  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name      String   @db.VarChar(255)
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
 }
